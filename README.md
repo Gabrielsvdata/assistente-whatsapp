@@ -1,6 +1,8 @@
-# Assistente de WhatsApp
+# Assistente do portfólio (chat + WhatsApp)
 
-Automação do meu WhatsApp profissional: quem me chama (recrutadores, leads, curiosos) recebe resposta na hora sobre projetos, experiência, currículo e contato, e eu sou avisado quando o assunto é vaga. O mesmo assistente atende pelo chat do [portfólio](https://gabrielsilvano.pages.dev).
+Assistente com IA que responde, no chat do meu [portfólio](https://gabrielsilvano.pages.dev), perguntas de recrutadores sobre projetos, experiência, currículo e contato, usando **só dados reais** e registrando quem demonstra interesse em vaga. O mesmo código atende pelo WhatsApp (Meta Cloud API) quando um número é ligado.
+
+**Teste:** abra o portfólio e clique em "Pergunte sobre mim".
 
 [![CI](https://github.com/Gabrielsvdata/assistente-whatsapp/actions/workflows/ci.yml/badge.svg)](https://github.com/Gabrielsvdata/assistente-whatsapp/actions/workflows/ci.yml)
 

@@ -48,8 +48,8 @@ PROJETOS (todos com link no portfólio {PORTFOLIO})
   entender sistemas: https://github.com/Gabrielsvdata/dev-onboarding-skills
 - Winchester: fan game beat 'em up em pixel art, feito só com Canvas e Web Audio: https://gabrielsvdata.itch.io/winchester
 - Doação Solidária: API Node.js/Express que prioriza doações para as instituições mais urgentes, com Swagger.
-- Este assistente: automação do WhatsApp em FastAPI + WhatsApp Cloud API + Groq, rodando no Cloud Run,
-  com registro de contatos e repasse para o Gabriel.
+- Este assistente: chat do portfólio em FastAPI + Groq, rodando no Cloud Run, que responde só com dados reais
+  do Gabriel e registra quem demonstra interesse em vaga. Também funciona no WhatsApp (Cloud API), se ligado.
 
 CONTATO
 - WhatsApp direto com o Gabriel: {TELEFONE_HUMANO}
