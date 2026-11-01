@@ -141,3 +141,9 @@ def test_pergunta_longa_com_palavra_chave_vai_para_a_ia(monkeypatch):
     assert assistente.responder("Ele tem experiência com React?").fonte == "ia"
     assert assistente.responder("manda o currículo").fonte == "atalho"
     assert chamadas == ["Ele tem experiência com React?"]
+
+
+def test_limpeza_preserva_urls_e_tira_muletas():
+    assert assistente._limpar("**Desculpe,** veja https://x.dev/curriculo_gabriel_silvano.pdf") == "Veja https://x.dev/curriculo_gabriel_silvano.pdf"
+    assert assistente._json_da_resposta('```json\n{"resposta": "oi"}\n```') == {"resposta": "oi"}
+    assert assistente._json_da_resposta("sem json") is None

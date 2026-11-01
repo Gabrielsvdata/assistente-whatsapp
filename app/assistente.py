@@ -106,8 +106,12 @@ COMO RESPONDER
 - Formato de mensagem de chat: até 500 caracteres, sem Markdown (nada de **, #, listas com "-" ou tabelas).
   Separe ideias com quebra de linha. No máximo 1 emoji, e só se couber bem.
 - Responda PRIMEIRO à pergunta, com fatos concretos (projeto, tecnologia, resultado). Depois, se ajudar, UM link completo.
-  Termine com no máximo UMA pergunta ou sugestão. Não cumprimente de novo se a conversa já começou.
-- Chame-o de "o Gabriel" (não "ele" solto). Use "avisar o Gabriel", nunca "avisar ele".
+  Não cumprimente de novo se a conversa já começou.
+- Em português, chame-o de "o Gabriel" (não "ele" solto) e use "avisar o Gabriel", nunca "avisar ele".
+  Em inglês, apenas "Gabriel", sem artigo.
+- Não exagere: o inglês dele é técnico (não diga fluente); não prometa disponibilidade que não está na lista.
+- Termine com UMA pergunta no máximo. Nunca duas.
+- Copie links exatamente como estão na lista, inclusive o "_" em curriculo_gabriel_silvano.pdf.
 - Use SOMENTE as informações abaixo. Se não tiver a informação (salário, pretensão, datas, outras empresas ou
   tecnologias), diga isso com naturalidade e ofereça o contato direto: WhatsApp {conhecimento.TELEFONE_HUMANO}.
 - Perguntas fora do tema (política, receitas, ajuda com código de terceiros): recuse em uma frase gentil e volte ao assunto.
@@ -139,8 +143,24 @@ INFORMAÇÕES SOBRE O GABRIEL
 """
 
 
-def _sem_markdown(texto: str) -> str:
-    return re.sub(r"[*_#`]+", "", texto or "").strip()
+def _limpar(texto: str) -> str:
+    """Tira Markdown (sem mexer em "_" de URLs) e muletas como "Desculpe," no início."""
+    texto = re.sub(r"\*\*|__|`|^#+\s*", "", texto or "", flags=re.M).strip()
+    texto = re.sub(r"^(desculpe|desculpa|sorry)[,!]?\s*", "", texto, flags=re.I)
+    return texto[:1].upper() + texto[1:] if texto else texto
+
+
+def _json_da_resposta(conteudo: str) -> dict | None:
+    """Lê o JSON mesmo que o modelo coloque texto ou ```json em volta."""
+    conteudo = re.sub(r"<think>.*?</think>", "", conteudo or "", flags=re.S)
+    inicio, fim = conteudo.find("{"), conteudo.rfind("}")
+    if inicio == -1 or fim == -1:
+        return None
+    try:
+        dados = json.loads(conteudo[inicio:fim + 1])
+    except json.JSONDecodeError:
+        return None
+    return dados if isinstance(dados, dict) else None
 
 
 def responder_com_ia(historico: list[dict], mensagem: str) -> Resposta | None:
@@ -160,9 +180,11 @@ def responder_com_ia(historico: list[dict], mensagem: str) -> Resposta | None:
             if getattr(erro, "status_code", None) != 400:
                 raise
             saida = cliente.chat.completions.create(**parametros)
-        conteudo = re.sub(r"<think>.*?</think>", "", saida.choices[0].message.content or "", flags=re.S)
-        dados = json.loads(conteudo)
-        texto = _sem_markdown(dados.get("resposta", "")).replace("avisar ele", "avisar o Gabriel")[:700]
+        dados = _json_da_resposta(saida.choices[0].message.content)
+        if dados is None:
+            logger.warning("IA devolveu algo fora do JSON: %r", (saida.choices[0].message.content or "")[:200])
+            return None
+        texto = _limpar(str(dados.get("resposta", ""))).replace("avisar ele", "avisar o Gabriel")[:700]
         if not texto:
             return None
         lead = None
