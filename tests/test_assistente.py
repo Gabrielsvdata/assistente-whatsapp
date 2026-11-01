@@ -133,3 +133,11 @@ def test_chat_web_mantem_historico_e_limita(client):
     for _ in range(12):
         ultimo = client.post("/chat", json={"mensagem": "3", "sessao": "abcd-1234"})
     assert ultimo.status_code == 429
+
+
+def test_pergunta_longa_com_palavra_chave_vai_para_a_ia(monkeypatch):
+    chamadas = []
+    monkeypatch.setattr(assistente, "responder_com_ia", lambda h, m: chamadas.append(m) or assistente.Resposta(texto="ok", fonte="ia"))
+    assert assistente.responder("Ele tem experiência com React?").fonte == "ia"
+    assert assistente.responder("manda o currículo").fonte == "atalho"
+    assert chamadas == ["Ele tem experiência com React?"]

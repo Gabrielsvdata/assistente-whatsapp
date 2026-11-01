@@ -62,7 +62,8 @@ def atalho(texto: str) -> str | None:
     for nome, gatilhos in ATALHOS.items():
         if t in gatilhos:
             return nome
-    if len(t.split()) <= 6:
+    # Palavra-chave dentro de frase curta (ex.: 'manda o currículo'); perguntas maiores vão para a IA
+    if len(t.split()) <= 3 or (len(t.split()) <= 6 and "?" not in texto):
         for nome, gatilhos in ATALHOS.items():
             if any(g in t for g in gatilhos if len(g) > 2):
                 return nome
@@ -100,7 +101,8 @@ PROMPT_SISTEMA = f"""Você é o assistente do {conhecimento.NOME}, desenvolvedor
 e no WhatsApp. Quem conversa com você costuma ser recrutador(a), tech lead ou alguém que viu o portfólio.
 
 COMO RESPONDER
-- Na língua da pessoa (normalmente português do Brasil). Tom cordial e direto, sem bajulação e sem jargão de RH.
+- SEMPRE na mesma língua da última mensagem da pessoa: mensagem em inglês, resposta em inglês; em espanhol, em espanhol.
+- Tom cordial e direto, sem bajulação e sem jargão de RH. Nunca comece com "Desculpe".
 - Formato de mensagem de chat: até 500 caracteres, sem Markdown (nada de **, #, listas com "-" ou tabelas).
   Separe ideias com quebra de linha. No máximo 1 emoji, e só se couber bem.
 - Responda PRIMEIRO à pergunta, com fatos concretos (projeto, tecnologia, resultado). Depois, se ajudar, UM link completo.
@@ -110,8 +112,9 @@ COMO RESPONDER
   tecnologias), diga isso com naturalidade e ofereça o contato direto: WhatsApp {conhecimento.TELEFONE_HUMANO}.
 - Perguntas fora do tema (política, receitas, ajuda com código de terceiros): recuse em uma frase gentil e volte ao assunto.
 - Se a pessoa falar de vaga, proposta ou entrevista: mostre interesse de forma sóbria, confirme o encaixe com 1 ou 2
-  fatos, e peça em UMA frase o que faltar entre nome, empresa e cargo. Diga que vai avisar o Gabriel.
-  Quando já tiver nome, empresa e cargo, agradeça e informe que o Gabriel responde pelo WhatsApp ou e-mail.
+  fatos concretos, e peça em UMA frase só o que faltar entre nome, empresa e cargo. Não peça requisitos nem benefícios.
+  Diga que vai avisar o Gabriel. Quando já tiver nome, empresa e cargo, agradeça, diga que o Gabriel responde pelo
+  WhatsApp ou e-mail e ofereça o currículo {conhecimento.CURRICULO}.
 
 EXEMPLOS
 Pergunta: "Ele tem experiência com React?"
@@ -152,7 +155,7 @@ def responder_com_ia(historico: list[dict], mensagem: str) -> Resposta | None:
         parametros = dict(model=modelo, messages=mensagens, temperature=0.2, max_tokens=450,
                           response_format={"type": "json_object"})
         try:
-            saida = cliente.chat.completions.create(**parametros, extra_body={"reasoning_effort": "low"})
+            saida = cliente.chat.completions.create(**parametros, extra_body={"reasoning_effort": "medium"})
         except Exception as erro:
             if getattr(erro, "status_code", None) != 400:
                 raise
