@@ -172,7 +172,8 @@ def responder_com_ia(historico: list[dict], mensagem: str) -> Resposta | None:
         mensagens = [{"role": "system", "content": PROMPT_SISTEMA}]
         mensagens += [{"role": m["role"], "content": m["content"][:1000]} for m in historico[-8:]]
         mensagens.append({"role": "user", "content": mensagem[:1500]})
-        parametros = dict(model=modelo, messages=mensagens, temperature=0.2, max_tokens=450,
+        # max_tokens inclui o raciocínio do modelo (gpt-oss, qwen): folga para o JSON não chegar cortado
+        parametros = dict(model=modelo, messages=mensagens, temperature=0.2, max_tokens=1500,
                           response_format={"type": "json_object"})
         try:
             saida = cliente.chat.completions.create(**parametros, extra_body={"reasoning_effort": "medium"})
@@ -182,7 +183,8 @@ def responder_com_ia(historico: list[dict], mensagem: str) -> Resposta | None:
             saida = cliente.chat.completions.create(**parametros)
         dados = _json_da_resposta(saida.choices[0].message.content)
         if dados is None:
-            logger.warning("IA devolveu algo fora do JSON: %r", (saida.choices[0].message.content or "")[:200])
+            logger.warning("IA devolveu algo fora do JSON (finish=%s): %r", saida.choices[0].finish_reason,
+                           (saida.choices[0].message.content or "")[:200])
             return None
         texto = _limpar(str(dados.get("resposta", ""))).replace("avisar ele", "avisar o Gabriel")[:700]
         if not texto:
